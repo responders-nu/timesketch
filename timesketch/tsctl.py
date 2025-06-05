@@ -151,19 +151,73 @@ def revoke_admin(username):
 
 @cli.command(name="grant-user")
 @click.argument("username")
-@click.option("--sketch_id", required=True)
-def grant_user(username, sketch_id):
-    """Grant access to a sketch."""
-    sketch = Sketch.query.filter_by(id=sketch_id).first()
+@click.option("--sketch_id", type=int, required=True)
+@click.option("--read-only", is_flag=True, help="Grant only read access to the sketch.")
+def grant_user(username, sketch_id, read_only):
+    """Grant a user access to a specific sketch.
+
+    This command allows an administrator to grant permissions to a user
+    for a given sketch. By default, both 'read' and 'write' permissions
+    are granted. If the '--read-only' flag is provided, only 'read'
+    permission will be granted.
+
+    Args:
+        username (str): The username of the user to grant access to.
+        sketch_id (int): The ID of the sketch to grant access to.
+        read_only (bool): If True, grants only 'read' permission.
+                          Otherwise, grants 'read' and 'write' permissions.
+
+    Prints a confirmation message upon success or an error message
+    if the user or sketch does not exist.
+    """
+    sketch = Sketch.get_by_id(sketch_id)
     user = User.query.filter_by(username=username).first()
     if not sketch:
         print("Sketch does not exist.")
-    elif not user:
+        return
+    if not user:
         print(f"User {username} does not exist.")
-    else:
-        sketch.grant_permission(permission="read", user=user)
+        return
+
+    sketch.grant_permission(permission="read", user=user)
+    if not read_only:
         sketch.grant_permission(permission="write", user=user)
-        print(f"User {username} added to the sketch {sketch.id} ({sketch.name})")
+    print(f"User {username} added to the sketch {sketch.id} ({sketch.name})")
+
+
+@cli.command(name="grant-group")
+@click.argument("group_name")
+@click.option("--sketch_id", type=int, required=True)
+@click.option("--read-only", is_flag=True, help="Grant only read access to the sketch.")
+def grant_group(group_name, sketch_id, read_only):
+    """Grant a group access to a specific sketch.
+
+    This command allows an administrator to grant permissions to a group
+    for a given sketch. By default, both 'read' and 'write' permissions
+    are granted. If the '--read-only' flag is provided, only 'read'
+    permission will be granted.
+
+    Args:
+        group_name (str): The name of the group to grant access to.
+        sketch_id (int): The ID of the sketch to grant access to.
+        read_only (bool): If True, grants only 'read' permission.
+                          Otherwise, grants 'read' and 'write' permissions.
+
+    Prints a confirmation message upon success or an error message
+    if the group or sketch does not exist.
+    """
+    sketch = Sketch.get_by_id(sketch_id)
+    group = Group.query.filter_by(name=group_name).first()
+    if not sketch:
+        print("Sketch does not exist.")
+        return
+    if not group:
+        print(f"Group {group_name} does not exist.")
+        return
+    sketch.grant_permission(permission="read", group=group)
+    if not read_only:
+        sketch.grant_permission(permission="write", group=group)
+    print(f"Group {group_name} added to the sketch {sketch.id} ({sketch.name})")
 
 
 @cli.command(name="version")
@@ -174,7 +228,12 @@ def get_version():
 
 @cli.command(name="drop-db")
 def drop_db():
-    """Drop all database tables."""
+    """Permanently remove all database tables.
+
+    This action is irreversible and will result in the loss of all data
+    stored in the Timesketch database, including users, sketches, timelines,
+    and all associated metadata. Use with extreme caution.
+    """
     if click.confirm("Do you really want to drop all the database tables?"):
         if click.confirm(
             "Are you REALLLY sure you want to DROP ALL the database tables?"
@@ -582,8 +641,78 @@ def sketch_info(sketch_id):
     sketch = Sketch.query.filter_by(id=sketch_id).first()
     if not sketch:
         print("Sketch does not exist.")
+        return
+
+    print(f"Sketch {sketch_id} Name: ({sketch.name})")
+
+    # define the table data
+    table_data = [
+        [
+            "searchindex_id",
+            "index_name",
+            "created_at",
+            "user_id",
+            "description",
+            "status",
+            "timeline_name",
+            "timeline_id",
+        ],
+    ]
+    for t in sketch.timelines:
+        table_data.append(
+            [
+                t.searchindex_id,
+                t.searchindex.index_name,
+                t.created_at,
+                t.user_id,
+                t.description,
+                t.status[-1].status,
+                t.name,
+                t.id,
+            ]
+        )
+    print_table(table_data)
+
+    print(f"Created by: {sketch.user.username}")
+    all_permissions = sketch.get_all_permissions()
+
+    print("Shared with:")
+    print("\tUsers: (user_id, username, access_level)")
+    if sketch.collaborators:
+        for user in sketch.collaborators:
+            user_perm_key = f"user/{user.username}"
+            perms = all_permissions.get(user_perm_key, [])
+            access_level = "unknown"
+            if "write" in perms:  # 'write' permission implies 'read'
+                access_level = "read/write"
+            elif "read" in perms:
+                access_level = "read-only"
+            else:
+                access_level = "none"  # Should not happen if user is a collaborator
+            print(f"\t\t{user.id}: {user.username} ({access_level})")
     else:
-        print(f"Sketch {sketch_id} Name: ({sketch.name})")
+        print("\tNo users shared with.")
+
+    print(f"\tGroups ({len(sketch.groups)}): (group_name, access_level)")
+    if sketch.groups:
+        for group in sketch.groups:
+            group_perm_key = f"group/{group.name}"
+            perms = all_permissions.get(group_perm_key, [])
+            access_level = "unknown"
+            if "write" in perms:  # 'write' permission implies 'read'
+                access_level = "read/write"
+            elif "read" in perms:
+                access_level = "read-only"
+            else:
+                access_level = "none"  # Should not happen if group is listed
+            print(f"\t\t{group.display_name} ({access_level})")
+    else:
+        print("\tNo groups shared with.")
+    sketch_labels = [label.label for label in sketch.labels]
+    print(f"Sketch Status: {sketch.get_status.status}")
+    print(f"Sketch is public: {bool(sketch.is_public)}")
+    sketch_labels = ([label.label for label in sketch.labels],)
+    print(f"Sketch Labels: {sketch_labels}")
 
         # define the table data
         table_data = [
