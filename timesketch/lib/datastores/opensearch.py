@@ -1119,12 +1119,14 @@ class OpenSearchDataStore(object):
 
         Returns:
             A tuple in the following order:
-                - The searchindex_id e.g. alias name
+                - The searchindex_id e.g. alias name or data stream
                 - The index of the document
         """
         try:
-            resolve = self.client.indices.resolve_index(searchindex_id).get("indices")[0]
-            if (index_name := resolve.get("data_stream")):
+            resolve = self.client.indices.resolve_index(searchindex_id).get("indices")[
+                0
+            ]
+            if index_name := resolve.get("data_stream"):
                 return index_name, searchindex_id
             else:
                 return resolve.get("aliases")[0], searchindex_id
