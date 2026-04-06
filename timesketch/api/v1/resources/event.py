@@ -252,12 +252,10 @@ class EventResource(resources.ResourceMixin, Resource):
 
         searchindex_id = args.get("searchindex_id")
 
-        # In case the index is part of an alias index, the alias name is used as searchindex
-        searchindex_id, searchindex_name = self.datastore.resolve_index_alias(
-            searchindex_id
-        )
+        searchindex_id, searchindex_name = self.datastore.resolve_index(searchindex_id)
 
         searchindex = SearchIndex.query.filter_by(index_name=searchindex_id).first()
+
         if not searchindex:
             abort(
                 HTTP_STATUS_CODE_BAD_REQUEST,
@@ -280,8 +278,9 @@ class EventResource(resources.ResourceMixin, Resource):
         if searchindex_id not in indices:
             abort(
                 HTTP_STATUS_CODE_BAD_REQUEST,
-                "Search index ID ({0!s}) does not belong to the list "
-                "of indices".format(searchindex_id),
+                "Search index ID ({0!s}) does not belong to the list of indices".format(
+                    searchindex_id
+                ),
             )
 
         result = self.datastore.get_event(searchindex_name, event_id)
@@ -574,8 +573,9 @@ class EventTaggingResource(resources.ResourceMixin, Resource):
             if field not in event_df:
                 abort(
                     HTTP_STATUS_CODE_BAD_REQUEST,
-                    "Events need to have a [{0:s}] field associated "
-                    "to it.".format(field),
+                    "Events need to have a [{0:s}] field associated to it.".format(
+                        field
+                    ),
                 )
             if any(event_df[field].isna()):
                 abort(
@@ -596,8 +596,9 @@ class EventTaggingResource(resources.ResourceMixin, Resource):
         if event_size > self.MAX_EVENTS_TO_TAG:
             abort(
                 HTTP_STATUS_CODE_BAD_REQUEST,
-                "Cannot tag more than {0:d} events in a single "
-                "request".format(self.MAX_EVENTS_TO_TAG),
+                "Cannot tag more than {0:d} events in a single request".format(
+                    self.MAX_EVENTS_TO_TAG
+                ),
             )
 
         tag_dict["number_of_events_passed_to_api"] = event_size
@@ -633,7 +634,6 @@ class EventTaggingResource(resources.ResourceMixin, Resource):
                 query_body["terminate_after"] = size
 
                 try:
-
                     search = datastore.client.search(
                         body=json.dumps(query_body),
                         index=[_index],
@@ -809,8 +809,7 @@ class EventAnnotationResource(resources.ResourceMixin, Resource):
         for _event in events:
             searchindex_id = _event["_index"]
 
-            # In case the index is part of an alias index, the alias name is used as searchindex
-            searchindex_id, searchindex_name = self.datastore.resolve_index_alias(
+            searchindex_id, searchindex_name = self.datastore.resolve_index(
                 searchindex_id
             )
             searchindex = SearchIndex.query.filter_by(index_name=searchindex_id).first()
@@ -927,8 +926,7 @@ class EventAnnotationResource(resources.ResourceMixin, Resource):
         for _event in events:
             searchindex_id = _event["_index"]
 
-            # In case the index is part of an alias index, the alias name is used as searchindex
-            searchindex_id, _ = self.datastore.resolve_index_alias(searchindex_id)
+            searchindex_id, _ = self.datastore.resolve_index(searchindex_id)
             searchindex = SearchIndex.query.filter_by(index_name=searchindex_id).first()
             event_id = _event["_id"]
 
@@ -948,7 +946,7 @@ class EventAnnotationResource(resources.ResourceMixin, Resource):
             if not event:
                 abort(
                     HTTP_STATUS_CODE_NOT_FOUND,
-                    "No event found with the id: " "{0!s}".format(event_id),
+                    "No event found with the id: {0!s}".format(event_id),
                 )
 
             # Retrieve annotation type supplied in the request
@@ -963,8 +961,9 @@ class EventAnnotationResource(resources.ResourceMixin, Resource):
                 if not comment:
                     abort(
                         HTTP_STATUS_CODE_NOT_FOUND,
-                        "No comment found with "
-                        "this id: {0!d}.".format(annotation["id"]),
+                        "No comment found with this id: {0!d}.".format(
+                            annotation["id"]
+                        ),
                     )
 
                 # Make sure the current user is the owner of the comment
@@ -989,8 +988,9 @@ class EventAnnotationResource(resources.ResourceMixin, Resource):
             else:
                 abort(
                     HTTP_STATUS_CODE_BAD_REQUEST,
-                    "Annotation type needs to be a comment, "
-                    "not {0!s}".format(annotation_type),
+                    "Annotation type needs to be a comment, not {0!s}".format(
+                        annotation_type
+                    ),
                 )
 
         return self.to_json(updated_annotations, status_code=HTTP_STATUS_CODE_OK)
@@ -1017,10 +1017,7 @@ class EventAnnotationResource(resources.ResourceMixin, Resource):
         event_id = form.event_id.data
         searchindex_id = form.searchindex_id.data
 
-        # In case the index is part of an alias index, the alias name is used as searchindex
-        searchindex_id, searchindex_name = self.datastore.resolve_index_alias(
-            searchindex_id
-        )
+        searchindex_id, searchindex_name = self.datastore.resolve_index(searchindex_id)
 
         sketch = self._get_sketch(sketch_id)
 
@@ -1035,7 +1032,7 @@ class EventAnnotationResource(resources.ResourceMixin, Resource):
         if not event:
             abort(
                 HTTP_STATUS_CODE_NOT_FOUND,
-                "No event found with the id: " "{0!s}".format(event_id),
+                "No event found with the id: {0!s}".format(event_id),
             )
 
         if annotation_type == "comment":
@@ -1045,7 +1042,7 @@ class EventAnnotationResource(resources.ResourceMixin, Resource):
             if not comment:
                 abort(
                     HTTP_STATUS_CODE_NOT_FOUND,
-                    "No comment found with " "this id: {0!d}.".format(annotation_id),
+                    "No comment found with this id: {0!d}.".format(annotation_id),
                 )
 
             # Make sure the current user is the owner of the comment
@@ -1089,8 +1086,9 @@ class EventAnnotationResource(resources.ResourceMixin, Resource):
 
         return (
             HTTP_STATUS_CODE_BAD_REQUEST,
-            "Could not delete the annotation"
-            " type {0!s} with the id {1!d}".format(annotation_type, annotation_id),
+            "Could not delete the annotation type {0!s} with the id {1!d}".format(
+                annotation_type, annotation_id
+            ),
         )
 
 
@@ -1310,8 +1308,9 @@ class EventUnTagResource(resources.ResourceMixin, Resource):
         if len(events) > self.MAX_EVENTS_TO_TAG:
             abort(
                 HTTP_STATUS_CODE_BAD_REQUEST,
-                "Cannot untag more than {0:d} events in a single "
-                "request".format(self.MAX_EVENTS_TO_TAG),
+                "Cannot untag more than {0:d} events in a single request".format(
+                    self.MAX_EVENTS_TO_TAG
+                ),
             )
 
         tags_to_remove = form.get("tags_to_remove", [])
@@ -1321,8 +1320,9 @@ class EventUnTagResource(resources.ResourceMixin, Resource):
         if len(tags_to_remove) > self.MAX_TAGS_PER_REQUEST:
             abort(
                 HTTP_STATUS_CODE_BAD_REQUEST,
-                "Cannot untag more than {0:d} tags in a single "
-                "request".format(self.MAX_TAGS_PER_REQUEST),
+                "Cannot untag more than {0:d} tags in a single request".format(
+                    self.MAX_TAGS_PER_REQUEST
+                ),
             )
 
         datastore = self.datastore
@@ -1341,8 +1341,7 @@ class EventUnTagResource(resources.ResourceMixin, Resource):
             searchindex = None
             # in both cases we are flexible, no matter what was supplied
             if searchindex_name:
-                # In case the index is part of an alias index, the alias name is used as searchindex
-                searchindex_id, searchindex_name = self.datastore.resolve_index_alias(
+                searchindex_id, searchindex_name = self.datastore.resolve_index(
                     searchindex_name
                 )
                 searchindex = SearchIndex.query.filter_by(

@@ -323,7 +323,7 @@ class ExploreResource(resources.ResourceMixin, Resource):
                         continue
                     event["_source"]["label"].append(label["name"])
                 del event["_source"]["timesketch_label"]
-            except KeyError:
+            except (KeyError, TypeError):
                 pass
 
             event["_source"]["comment"] = comments.get(event["_id"], [])

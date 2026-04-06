@@ -112,6 +112,7 @@ class OpenSearchDataStore(object):
 
         self.user = current_app.config.get("OPENSEARCH_USER", "user")
         self.password = current_app.config.get("OPENSEARCH_PASSWORD", "pass")
+        self.api_key = current_app.config.get("OPENSEARCH_API_KEY")
         self.ssl = current_app.config.get("OPENSEARCH_SSL", False)
         self.verify = current_app.config.get("OPENSEARCH_VERIFY_CERTS", True)
         self.timeout = current_app.config.get("OPENSEARCH_TIMEOUT", 10)
@@ -123,6 +124,12 @@ class OpenSearchDataStore(object):
 
         if self.user and self.password:
             parameters["http_auth"] = (self.user, self.password)
+
+        if self.api_key:
+            parameters.pop("http_auth", None)
+            # Base64-encoded API key
+            parameters["headers"] = {"Authorization": f"ApiKey {self.api_key}"}
+
         if self.timeout:
             parameters["timeout"] = self.timeout
 
@@ -584,7 +591,6 @@ class OpenSearchDataStore(object):
             )
 
         try:
-
             _search_result = self.client.search(
                 body=query_dsl,
                 index=list(indices),
@@ -680,7 +686,6 @@ class OpenSearchDataStore(object):
             yield event
 
         while scroll_size > 0:
-
             result = self.client.scroll(scroll_id=scroll_id, scroll="5m")
             scroll_id = result["_scroll_id"]
             scroll_size = len(result["hits"]["hits"])
@@ -782,7 +787,6 @@ class OpenSearchDataStore(object):
         """
         METRICS["search_get_event"].inc()
         try:
-
             event = self.client.get(
                 id=event_id,
                 index=searchindex_id,
@@ -1031,7 +1035,6 @@ class OpenSearchDataStore(object):
         }
 
         try:
-
             results = self.client.bulk(
                 body=self.import_events, timeout=self._request_timeout
             )
@@ -1111,20 +1114,21 @@ class OpenSearchDataStore(object):
         self.import_events = []
         return return_dict
 
-    def resolve_index_alias(self, searchindex_id: str) -> tuple:
-        """Resolve the alias of an index.
+    def resolve_index(self, searchindex_id: str) -> tuple:
+        """Resolve index of an alias or datastream.
 
         Returns:
             A tuple in the following order:
-                - The searchindex_id e.g. alias name
+                - The searchindex_id e.g. alias name or data stream
                 - The index of the document
         """
         try:
-            index_name = (
-                self.client.indices.resolve_index(searchindex_id)
-                .get("indices")[0]
-                .get("aliases")[0]
-            )
-            return index_name, searchindex_id
+            resolve = self.client.indices.resolve_index(searchindex_id).get("indices")[
+                0
+            ]
+            if index_name := resolve.get("data_stream"):
+                return index_name, searchindex_id
+            else:
+                return resolve.get("aliases")[0], searchindex_id
         except TypeError:
             return searchindex_id, searchindex_id
