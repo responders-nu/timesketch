@@ -12,18 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Interface for aggregators."""
+
 import datetime
 import logging
 
-import opensearchpy
 import pandas
 from flask import current_app
+from opensearchpy.exceptions import NotFoundError, TransportError
 
 from timesketch.lib.charts import manager as chart_manager
 from timesketch.lib.datastores.opensearch import OpenSearchDataStore
 from timesketch.models.sketch import Sketch as SQLSketch
 
 logger = logging.getLogger("timesketch.aggregator_interface")
+
+KNOWN_FIELD_TYPES = {
+    "datetime": "date",
+    "timestamp_desc": "keyword",
+    "data_type": "keyword",
+    "tag": "keyword",
+    "__ts_timeline_id": "long",
+}
 
 
 class AggregationResult(object):
@@ -337,23 +346,18 @@ class BaseAggregator(object):
             mapping = self.opensearch.client.indices.get_field_mapping(
                 index=indices, fields=field_name
             )
-        except opensearchpy.NotFoundError:
+        except NotFoundError:
             mapping = {}
+        except TransportError:
+            # Not available when running in Elastic Cloud serverless mode
+            try:
+                mapping = self.opensearch.client.indices.get_mapping(index=indices)
+                if field_type := KNOWN_FIELD_TYPES.get(field_name):
+                    return f"{field_name}.{field_type}"
+            except Exception:
+                pass
+            return field_format
 
-        # The returned structure is nested so we need to unpack it.
-        # Example:
-        # {'<INDEX NAME>': {
-        #     'mappings': {
-        #         'inode': {
-        #             'full_name': 'inode',
-        #             'mapping': {
-        #                 'inode': {
-        #                     'type': 'long'
-        #                 }
-        #             }
-        #         }
-        #     }
-        # }}
         for value in mapping.values():
             mappings = value.get("mappings", {})
             mapping = mappings.get(field_name, {}).get("mapping", {})
@@ -380,7 +384,7 @@ class BaseAggregator(object):
             aggregation = self.opensearch.client.search(
                 index=self.indices, body=aggregation_spec, size=0
             )
-        except opensearchpy.NotFoundError:
+        except NotFoundError:
             logger.error("Unable to find indices: {0:s}".format(",".join(self.indices)))
             raise
         return aggregation
