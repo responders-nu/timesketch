@@ -18,7 +18,6 @@ from typing import Optional
 from timesketch.lib.llms import interface
 from timesketch.lib.llms import manager
 
-
 # Check if the required dependencies are installed.
 has_required_deps = True
 try:

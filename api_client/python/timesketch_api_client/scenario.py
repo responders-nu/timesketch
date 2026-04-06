@@ -13,12 +13,10 @@
 # limitations under the License.
 """Timesketch API client library for working with scenarios."""
 
-
 import logging
 
 from . import error
 from . import resource
-
 
 logger = logging.getLogger("timesketch_api.scenario")
 

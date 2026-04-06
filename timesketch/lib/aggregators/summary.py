@@ -16,6 +16,7 @@
 This aggregator is primarily used for the event data analytics and not useful
 for the UI.  Therefore,  by default this aggregator is "hidden" from views.
 """
+
 from __future__ import unicode_literals
 
 from timesketch.lib.aggregators import interface, manager

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Commands for analyzing timelines."""
+
 import json
 import sys
 import time
@@ -205,13 +206,9 @@ def analyzer_results(ctx, analyzer_name, timeline_id, show_dependent):
                             # TODO(jaegeral) consider sorting to show the root
                             # analyzer first
                             if show_dependent:
-                                click.echo(
-                                    f"Dependent: {status} - {result_priority} \
-                                          - {result_summary}"
-                                )
+                                click.echo(f"Dependent: {status} - {result_priority} \
+                                          - {result_summary}")
         except Exception as e:
-            click.echo(
-                f"Unable to get results for analyzer [{analyzer_name}]  \
-                    on [{timeline.name}]: {e}"
-            )
+            click.echo(f"Unable to get results for analyzer [{analyzer_name}]  \
+                    on [{timeline.name}]: {e}")
             sys.exit(1)

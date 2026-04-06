@@ -21,6 +21,7 @@ also be used by those manually generating charts in notebooks.
 This aggregator is not useful for UI and therefore is "hidden" from
 views.
 """
+
 from __future__ import unicode_literals
 
 import altair as alt

@@ -11,7 +11,6 @@ import numpy as np
 from timesketch.lib.analyzers import interface
 from timesketch.lib.analyzers import manager
 
-
 logger = logging.getLogger("timesketch.analyzer.evtxgap")
 
 

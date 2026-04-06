@@ -20,7 +20,6 @@ from __future__ import unicode_literals
 
 import collections
 
-
 emoji = collections.namedtuple("emoji", "code help")
 
 
