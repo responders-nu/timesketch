@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for v1 of the Timesketch API."""
+
 from __future__ import print_function, unicode_literals
 
 import json

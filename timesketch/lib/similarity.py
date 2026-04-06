@@ -22,7 +22,6 @@ from six.moves import filter
 from datasketch.minhash import MinHash
 from datasketch.lsh import MinHashLSH
 
-
 # Parameters for Jaccard and Minhash calculations.
 DEFAULT_DELIMITERS = [" ", "-", "/"]
 DEFAULT_THRESHOLD = 0.5

@@ -44,7 +44,6 @@ from timesketch.models.annotations import GenericAttributeMixin
 from timesketch.lib.utils import random_color
 from timesketch.models import db_session
 
-
 logger = logging.getLogger("timesketch.sketch")
 
 
