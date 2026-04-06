@@ -15,6 +15,7 @@
 
 The timesketch API is a RESTful API that exposes the following resources:
 """
+
 from __future__ import unicode_literals
 
 import logging
@@ -26,7 +27,6 @@ from flask_restful import marshal
 
 from timesketch.lib.definitions import HTTP_STATUS_CODE_OK
 from timesketch.lib.datastores.opensearch import OpenSearchDataStore
-
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",

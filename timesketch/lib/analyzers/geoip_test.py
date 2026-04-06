@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Tests for GeoIP analyzer."""
+
 from __future__ import unicode_literals
 
 import mock

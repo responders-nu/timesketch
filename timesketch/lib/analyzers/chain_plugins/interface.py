@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """This file contains an interface for chain analyzer plugins."""
+
 import abc
 
 from timesketch.lib import emojis

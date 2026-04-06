@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A LLM provider for the ollama server."""
+
 import json
 import requests
 

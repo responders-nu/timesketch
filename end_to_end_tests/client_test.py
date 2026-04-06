@@ -184,8 +184,7 @@ level: high
     def test_sigmarule_create_get(self):
         """Client Sigma object tests."""
 
-        rule = self.api.create_sigmarule(
-            rule_yaml="""
+        rule = self.api.create_sigmarule(rule_yaml="""
 title: Suspicious Installation of eeeee
 id: 5266a592-b793-11ea-b3de-eeeee
 description: Detects suspicious installation of eeeee
@@ -205,8 +204,7 @@ detection:
 falsepositives:
     - Unknown
 level: high
-"""
-        )
+""")
         self.assertions.assertIsNotNone(rule)
 
         rule = self.api.get_sigmarule(rule_uuid="5266a592-b793-11ea-b3de-eeeee")

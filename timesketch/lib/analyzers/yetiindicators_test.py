@@ -9,7 +9,6 @@ from timesketch.lib.analyzers import yetiindicators
 from timesketch.lib.testlib import BaseTest
 from timesketch.lib.testlib import MockDataStore
 
-
 MOCK_YETI_ENTITY_REQUEST = {
     "entities": [
         {

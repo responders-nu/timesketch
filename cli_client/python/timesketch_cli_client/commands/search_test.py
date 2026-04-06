@@ -23,7 +23,6 @@ from timesketch_api_client import test_lib as api_test_lib
 from .. import test_lib
 from .search import saved_searches_group
 
-
 EXPECTED_OUTPUT = """query_string: test:"foobar"
 query_filter: {
   "size": 10000,
