@@ -46,6 +46,8 @@ if [ "$1" = 'timesketch' ]; then
   if [ $OPENSEARCH_HOST ] && [ $OPENSEARCH_PORT ]; then
     sed -i 's#OPENSEARCH_HOST = \x27127.0.0.1\x27#OPENSEARCH_HOST = \x27'$OPENSEARCH_HOST'\x27#' /etc/timesketch/timesketch.conf
     sed -i 's#OPENSEARCH_PORT = 9200#OPENSEARCH_PORT = '$OPENSEARCH_PORT'#' /etc/timesketch/timesketch.conf
+    sed -i 's#OPENSEARCH_API_KEY = None#OPENSEARCH_API_KEY = \x27'$OPENSEARCH_API_KEY'\x27#' /etc/timesketch/timesketch.conf
+    sed -i 's#OPENSEARCH_SSL = False#OPENSEARCH_SSL = '$OPENSEARCH_SSL'#' /etc/timesketch/timesketch.conf
   else
     # Log an error since we need the above-listed environment variables
     echo "Please pass values for the ELASTIC_ADDRESS and ELASTIC_PORT environment variables"
