@@ -253,6 +253,7 @@ def list_sketches():
             continue
         print(sketch.id, sketch.name, f"status:{status}")
 
+
 @cli.command(name="create-sketch")
 @click.option("--username", required=True)
 @click.argument("sketch_name", required=True)
@@ -272,6 +273,7 @@ def create_sketch(username, sketch_name):
         sketch.grant_permission(permission="write", user=user)
         sketch.grant_permission(permission="delete", user=user)
         print(f"Sketch created: {sketch_name} ({sketch.id})")
+
 
 @cli.command(name="list-groups")
 @click.option("--showmembership", is_flag=True, help="Show members of that group.")
