@@ -714,57 +714,57 @@ def sketch_info(sketch_id):
     sketch_labels = ([label.label for label in sketch.labels],)
     print(f"Sketch Labels: {sketch_labels}")
 
-        # define the table data
-        table_data = [
+    # define the table data
+    table_data = [
+        [
+            "searchindex_id",
+            "index_name",
+            "created_at",
+            "user_id",
+            "description",
+        ],
+    ]
+
+    for t in sketch.active_timelines:
+        table_data.append(
             [
-                "searchindex_id",
-                "index_name",
-                "created_at",
-                "user_id",
-                "description",
-            ],
-        ]
+                t.searchindex_id,
+                t.searchindex.index_name,
+                t.created_at,
+                t.user_id,
+                t.description,
+            ]
+        )
 
-        for t in sketch.active_timelines:
-            table_data.append(
-                [
-                    t.searchindex_id,
-                    t.searchindex.index_name,
-                    t.created_at,
-                    t.user_id,
-                    t.description,
-                ]
-            )
+    print_table(table_data)
 
-        print_table(table_data)
+    print("Shared with:")
+    print("\tUsers: (user_id, username)")
+    for user in sketch.collaborators:
+        print(f"\t\t{user.id}: {user.username}")
+    print("\tGroups:")
+    for group in sketch.groups:
+        print(f"\t\t{group.display_name}")
+    sketch_labels = [label.label for label in sketch.labels]
+    print(f"Sketch Status: {sketch.get_status.status}")
+    print(f"Sketch is public: {bool(sketch.is_public)}")
+    sketch_labels = ([label.label for label in sketch.labels],)
+    print(f"Sketch Labels: {sketch_labels}")
 
-        print("Shared with:")
-        print("\tUsers: (user_id, username)")
-        for user in sketch.collaborators:
-            print(f"\t\t{user.id}: {user.username}")
-        print("\tGroups:")
-        for group in sketch.groups:
-            print(f"\t\t{group.display_name}")
-        sketch_labels = [label.label for label in sketch.labels]
-        print(f"Sketch Status: {sketch.get_status.status}")
-        print(f"Sketch is public: {bool(sketch.is_public)}")
-        sketch_labels = ([label.label for label in sketch.labels],)
-        print(f"Sketch Labels: {sketch_labels}")
-
-        status_table = [
-            [
-                "id",
-                "status",
-                "created_at",
-                "user_id",
-            ],
-        ]
-        for status in sketch.status:
-            status_table.append(
-                [status.id, status.status, status.created_at, status.user_id]
-            )
-        print("Status:")
-        print_table(status_table)
+    status_table = [
+        [
+            "id",
+            "status",
+            "created_at",
+            "user_id",
+        ],
+    ]
+    for status in sketch.status:
+        status_table.append(
+            [status.id, status.status, status.created_at, status.user_id]
+        )
+    print("Status:")
+    print_table(status_table)
 
 
 @cli.command(name="validate-context-links-conf")
