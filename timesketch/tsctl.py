@@ -194,6 +194,25 @@ def list_sketches():
             continue
         print(sketch.id, sketch.name, f"status:{status}")
 
+@cli.command(name="create-sketch")
+@click.option("--username", required=True)
+@click.argument("sketch_name", required=True)
+def create_sketch(username, sketch_name):
+    """Create a new sketch."""
+    user = User.get_or_create(username=username)
+    sketch = Sketch.query.filter_by(name=sketch_name).first()
+
+    if not sketch:
+        sketch = Sketch.get_or_create(name=sketch_name, user_id=user.id)
+        sketch.user = user
+        sketch.status.append(sketch.Status(user=None, status="new"))
+        db_session.commit()
+
+        # Give the requesting user permissions on the new sketch.
+        sketch.grant_permission(permission="read", user=user)
+        sketch.grant_permission(permission="write", user=user)
+        sketch.grant_permission(permission="delete", user=user)
+        print(f"Sketch created: {sketch_name} ({sketch.id})")
 
 @cli.command(name="list-groups")
 @click.option("--showmembership", is_flag=True, help="Show members of that group.")
