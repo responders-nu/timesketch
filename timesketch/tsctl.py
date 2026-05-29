@@ -293,10 +293,12 @@ def list_groups(showmembership):
 @click.argument("group_name")
 def create_group(group_name):
     """Create a group."""
-    group = Group.get_or_create(name=group_name, display_name=group_name)
-    db_session.add(group)
-    db_session.commit()
-    print(f"Group created: {group_name}")
+    group = Group.query.filter_by(name=group_name).first()
+    if not group:
+        group = Group.get_or_create(name=group_name, display_name=group_name)
+        db_session.add(group)
+        db_session.commit()
+        print(f"Group created: {group_name}")
 
 
 @cli.command(name="list-group-members")
