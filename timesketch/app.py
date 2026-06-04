@@ -52,9 +52,9 @@ def create_app(config=None):
 
     if not config:
         # Where to find the config file
-        default_path = "/etc/timesketch/timesketch.conf"
+        default_path = "/etc/timesketch/config/timesketch.conf"
         # Fall back to legacy location of the config file
-        legacy_path = "/etc/timesketch.conf"
+        legacy_path = "/etc/timesketch/timesketch.conf"
         if os.path.isfile(default_path):
             config = default_path
         else:
