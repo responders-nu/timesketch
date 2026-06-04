@@ -23,12 +23,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
   && rm -rf /var/lib/apt/lists/*
 
-# Install Plaso
-RUN add-apt-repository -y ppa:gift/$PPA_TRACK
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    plaso-tools \
-  && rm -rf /var/lib/apt/lists/*
-
 # Install NodeJS for frontend development
 RUN curl -sL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
 RUN bash nodesource_setup.sh
