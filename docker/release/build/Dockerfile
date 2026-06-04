@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gpg-agent \
     wget \
     tzdata \
-  && rm -rf /var/lib/apt/lists/*
+    unzip \
+  && rm -rf /var/lib/apt/lists/* 
 
 # Install Timesketch
 RUN wget https://raw.githubusercontent.com/responders-nu/timesketch/${BRANCH}/requirements.txt
@@ -26,6 +27,12 @@ RUN pip3 install https://github.com/responders-nu/timesketch/archive/$BRANCH.zip
 
 # Install Plaso
 RUN add-apt-repository -y ppa:gift/$PPA_TRACK
+
+RUN mkdir /etc/timesketch && \
+  wget https://github.com/responders-nu/timesketch/archive/$BRANCH.zip -O timesketch.zip && \
+  unzip timesketch.zip -d /usr/local/src && \
+  cp /usr/local/src/timesketch-*/data/*.yaml /etc/timesketch
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     plaso-tools \
   && rm -rf /var/lib/apt/lists/*
